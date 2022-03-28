@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:twilio="http://www.mulesoft.org/schema/mule/twilio"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/twilio http://www.mulesoft.org/schema/mule/twilio/current/mule-twilio.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<twilio:config name="Twilio_Connector_Config" doc:name="Twilio Connector Config" doc:id="fde89d88-c9db-439f-8a56-4a81165c4d26" >
+		<twilio:account-sid-auth-token-connection username="AC5af7fb754d29c293a018ec1ea8371565" password="8a278bbf7516703bf14d956a6e8687a1" baseUri="https://api.twilio.com/" />
+	</twilio:config>
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="835e72cd-d829-458f-b7da-edbea9598f4b" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<flow name="twilio-msgFlow" doc:id="36c9a986-eb01-4d35-b157-71013bcadc80" >
+		<http:listener doc:name="Listener" doc:id="b439e8e0-e0e7-4ca1-bc55-f367d213c7cc" config-ref="HTTP_Listener_config" path="/twilio"/>
+		<logger level="INFO" doc:name="Logger" doc:id="5be38963-c632-4ebf-b76f-2703782038e7" message="===start====="/>
+		<ee:transform doc:name="Transform Message" doc:id="38b4c34c-a96e-4d0c-9438-c7900e3f6d18">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/x-www-form-urlencoded
+---
+{
+	From: payload.from,
+	To: payload.to,
+	Body: payload.body
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<twilio:create20100401-accounts-messagesjson-by-account-sid doc:name="Create Message" doc:id="a44b09ed-def6-49e9-940f-660dea3b754b" config-ref="Twilio_Connector_Config" accountSid="AC5af7fb754d29c293a018ec1ea8371565"/>
+		<ee:transform doc:name="Transform Message" doc:id="a6def268-3362-44f4-904d-ccc704af11cd" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="8270f1ca-1ea2-4fa8-a52f-3d68692815d7" message="=====end-=--=="/>
+	</flow>
+</mule>
